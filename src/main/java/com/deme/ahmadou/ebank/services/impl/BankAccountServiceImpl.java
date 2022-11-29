@@ -4,6 +4,7 @@ import com.deme.ahmadou.ebank.entities.BankAccount;
 import com.deme.ahmadou.ebank.entities.CurrentAccount;
 import com.deme.ahmadou.ebank.entities.Customer;
 import com.deme.ahmadou.ebank.entities.SavingAccount;
+import com.deme.ahmadou.ebank.enums.AccountStatus;
 import com.deme.ahmadou.ebank.exceptions.BankAccountNotFoundException;
 import com.deme.ahmadou.ebank.exceptions.CustomerNotFoundException;
 import com.deme.ahmadou.ebank.repositories.BankAccountRepository;
@@ -37,6 +38,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         currentAccount.setBalance(initialBalance);
         currentAccount.setCreatedAt(new Date());
         currentAccount.setCustomer(customer);
+        currentAccount.setStatus(AccountStatus.CREATED);
         currentAccount.setOverDraft(overDraft);
 
         return bankAccountRepository.save(currentAccount);
@@ -52,6 +54,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         savingAccount.setBalance(initialBalance);
         savingAccount.setCreatedAt(new Date());
         savingAccount.setCustomer(customer);
+        savingAccount.setStatus(AccountStatus.CREATED);
         savingAccount.setInterestRate(interestRate);
 
         return bankAccountRepository.save(savingAccount);

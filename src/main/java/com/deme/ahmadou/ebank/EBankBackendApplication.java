@@ -3,9 +3,15 @@ package com.deme.ahmadou.ebank;
 import com.deme.ahmadou.ebank.entities.*;
 import com.deme.ahmadou.ebank.enums.AccountStatus;
 import com.deme.ahmadou.ebank.enums.OperationType;
+import com.deme.ahmadou.ebank.exceptions.BalanceNotSufficientException;
+import com.deme.ahmadou.ebank.exceptions.BankAccountNotFoundException;
+import com.deme.ahmadou.ebank.exceptions.CustomerNotFoundException;
 import com.deme.ahmadou.ebank.repositories.AccountOperationRepository;
 import com.deme.ahmadou.ebank.repositories.BankAccountRepository;
 import com.deme.ahmadou.ebank.repositories.CustomerRepository;
+import com.deme.ahmadou.ebank.services.AccountOperationService;
+import com.deme.ahmadou.ebank.services.BankAccountService;
+import com.deme.ahmadou.ebank.services.CustomerService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,58 +29,49 @@ public class EBankBackendApplication {
 	}
 
 	@Bean
-	CommandLineRunner start(CustomerRepository customerRepository,
-							BankAccountRepository bankAccountRepository,
-							AccountOperationRepository accountOperationRepository){
+	CommandLineRunner start(CustomerService customerService,
+							BankAccountService bankAccountService,
+							AccountOperationService accountOperationService,
+							BankAccountRepository bankAccountRepository){
 		return args -> {
 
 			// create 3 customer
-			Stream.of("Cheikh","Ahmadou","Bamba").forEach(name->{
+			Stream.of("Bamba","Khadija","Pourmera").forEach(name->{
 				Customer customer = new Customer();
 				customer.setName(name);
 				customer.setEmail(name.toLowerCase()+"@gmail.com");
-				customerRepository.save(customer);
+				customerService.saveCustomer(customer);
 			});
 
 			// create 2 accounts for every customer
-			customerRepository.findAll().forEach(customer -> {
+			customerService.listCustomers().forEach(customer -> {
 				// creating a current account
-				CurrentAccount currentAccount = new CurrentAccount();
-
-				currentAccount.setId(UUID.randomUUID().toString());
-				currentAccount.setCreatedAt(new Date());
-				currentAccount.setStatus(AccountStatus.CREATED);
-				currentAccount.setBalance(Math.random()*9000);
-				currentAccount.setOverDraft(9000);
-				currentAccount.setCustomer(customer);
-
-				bankAccountRepository.save(currentAccount);
+				try {
+					bankAccountService.saveCurrentBankAccount(Math.random()*90000,9000,customer.getId());
+				} catch (CustomerNotFoundException e) {
+					throw new RuntimeException(e);
+				}
 
 				//creating a saving account
-				SavingAccount savingAccount = new SavingAccount();
-
-				savingAccount.setId(UUID.randomUUID().toString());
-				savingAccount.setStatus(AccountStatus.CREATED);
-				savingAccount.setBalance(Math.random()*9000);
-				savingAccount.setCustomer(customer);
-				savingAccount.setCreatedAt(new Date());
-				savingAccount.setInterestRate(5.5);
-
-				bankAccountRepository.save(savingAccount);
+				try {
+					bankAccountService.saveSavingAccount(Math.random()*120000,5.5,customer.getId());
+				} catch (CustomerNotFoundException e) {
+					throw new RuntimeException(e);
+				}
 
 			});
 
 			// create 10 operations for every bank account
 			bankAccountRepository.findAll().forEach(account -> {
 				for(int i=0; i<10; i++){
-					AccountOperation accountOperation = new AccountOperation();
 
-					accountOperation.setAccount(account);
-					accountOperation.setOperationDate(new Date());
-					accountOperation.setAmount(Math.random()*1200);
-					accountOperation.setType(Math.random()>0.5 ? OperationType.DEBIT : OperationType.CREDIT);
+					try {
+						accountOperationService.credit(account.getId(),10_000+Math.random()*120_000,"Credit");
+						accountOperationService.debit(account.getId(),1000+Math.random()*9000,"Debit");
 
-					accountOperationRepository.save(accountOperation);
+					} catch (BankAccountNotFoundException | BalanceNotSufficientException e) {
+						throw new RuntimeException(e);
+					}
 				}
 			});
 		};
