@@ -1,5 +1,6 @@
 package com.deme.ahmadou.ebank;
 
+import com.deme.ahmadou.ebank.dtos.CustomerDto;
 import com.deme.ahmadou.ebank.entities.*;
 import com.deme.ahmadou.ebank.enums.AccountStatus;
 import com.deme.ahmadou.ebank.enums.OperationType;
@@ -36,11 +37,11 @@ public class EBankBackendApplication {
 		return args -> {
 
 			// create 3 customer
-			Stream.of("Bamba","Khadija","Pourmera").forEach(name->{
-				Customer customer = new Customer();
-				customer.setName(name);
-				customer.setEmail(name.toLowerCase()+"@gmail.com");
-				customerService.saveCustomer(customer);
+			Stream.of("Bamba Deme","Khadija","Pourmera").forEach(name->{
+				CustomerDto customerDto = new CustomerDto();
+				customerDto.setName(name);
+				customerDto.setEmail(name.toLowerCase()+"@gmail.com");
+				customerService.saveCustomer(customerDto);
 			});
 
 			// create 2 accounts for every customer

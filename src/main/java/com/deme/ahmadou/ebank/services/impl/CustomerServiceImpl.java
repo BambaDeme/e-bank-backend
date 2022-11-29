@@ -24,8 +24,11 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerServiceMapperImpl customerServiceMapperIml;
 
     @Override
-    public Customer saveCustomer(Customer customer) {
-        return customerRepository.save(customer);
+    public CustomerDto saveCustomer(CustomerDto customerDto) {
+        log.info("Saving new customer {}", customerDto);
+        Customer customer = customerServiceMapperIml.fromCustomerDto(customerDto);
+        Customer savedCustomer = customerRepository.save(customer);
+        return customerServiceMapperIml.fromCustomer(savedCustomer);
     }
 
     @Override
@@ -34,7 +37,31 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Customer getCustomerById(Long id) throws CustomerNotFoundException {
-        return customerRepository.findById(id).orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
+    public CustomerDto getCustomerById(Long id) throws CustomerNotFoundException {
+       Customer customer =  customerRepository.findById(id).orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
+       return customerServiceMapperIml.fromCustomer(customer);
+    }
+
+    @Override
+    public CustomerDto updateCustomer(CustomerDto customerDto) throws CustomerNotFoundException {
+
+        log.info("Updating customer {}", customerDto);
+        Customer customer = customerRepository.findById(customerDto.getId())
+                .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
+
+        Customer savedCustomer = customerRepository.save(customerServiceMapperIml.fromCustomerDto(customerDto));
+        return customerServiceMapperIml.fromCustomer(savedCustomer);
+
+    }
+
+    @Override
+    public void deleteCustomer(Long customerId) throws CustomerNotFoundException {
+
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
+
+        log.info("Deleting customer {}", customer);
+
+        customerRepository.deleteById(customerId);
     }
 }
