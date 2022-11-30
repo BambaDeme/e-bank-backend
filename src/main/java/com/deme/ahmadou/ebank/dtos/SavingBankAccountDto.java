@@ -8,7 +8,7 @@ import java.util.Date;
 
 
 @Data
-public class SavingBankAccountDto {
+public class SavingBankAccountDto extends BankAccountDto{
 
     private String id;
 

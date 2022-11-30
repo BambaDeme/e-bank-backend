@@ -26,7 +26,8 @@ public class AccountOperationServiceImpl implements AccountOperationService {
 
     @Override
     public void debit(String accountId, double amount, String description) throws BankAccountNotFoundException, BalanceNotSufficientException {
-        BankAccount bankAccount = bankAccountService.getBankAccount(accountId);
+        BankAccount bankAccount =  bankAccountRepository.findById(accountId)
+                .orElseThrow(() -> new BankAccountNotFoundException("Bank account not found"));
         if(bankAccount.getBalance()<amount){
             throw new BalanceNotSufficientException("Balance not sufficient ");
         }
@@ -46,7 +47,8 @@ public class AccountOperationServiceImpl implements AccountOperationService {
 
     @Override
     public void credit(String accountId, double amount, String description) throws BankAccountNotFoundException {
-        BankAccount bankAccount = bankAccountService.getBankAccount(accountId);
+        BankAccount bankAccount =  bankAccountRepository.findById(accountId)
+                .orElseThrow(() -> new BankAccountNotFoundException("Bank account not found"));
 
         AccountOperation accountOperation = new AccountOperation();
         accountOperation.setType(OperationType.CREDIT);
