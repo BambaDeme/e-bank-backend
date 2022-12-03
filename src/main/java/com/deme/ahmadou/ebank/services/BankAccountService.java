@@ -1,8 +1,6 @@
 package com.deme.ahmadou.ebank.services;
 
-import com.deme.ahmadou.ebank.dtos.BankAccountDto;
-import com.deme.ahmadou.ebank.dtos.CurrentBankAccountDto;
-import com.deme.ahmadou.ebank.dtos.SavingBankAccountDto;
+import com.deme.ahmadou.ebank.dtos.*;
 import com.deme.ahmadou.ebank.entities.BankAccount;
 import com.deme.ahmadou.ebank.entities.CurrentAccount;
 import com.deme.ahmadou.ebank.entities.SavingAccount;
@@ -18,4 +16,8 @@ public interface BankAccountService {
     BankAccountDto getBankAccount(String accountId) throws BankAccountNotFoundException;
 
     List<BankAccountDto> getBankAccountList();
+
+    List<AccountOperationDto> accountHistory(String accountId) throws BankAccountNotFoundException;
+
+    AccountHistoryDto pageOperations(String accountId,int page,int size) throws BankAccountNotFoundException;
 }

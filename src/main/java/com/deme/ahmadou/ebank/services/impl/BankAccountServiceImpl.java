@@ -1,21 +1,20 @@
 package com.deme.ahmadou.ebank.services.impl;
 
-import com.deme.ahmadou.ebank.dtos.BankAccountDto;
-import com.deme.ahmadou.ebank.dtos.CurrentBankAccountDto;
-import com.deme.ahmadou.ebank.dtos.SavingBankAccountDto;
-import com.deme.ahmadou.ebank.entities.BankAccount;
-import com.deme.ahmadou.ebank.entities.CurrentAccount;
-import com.deme.ahmadou.ebank.entities.Customer;
-import com.deme.ahmadou.ebank.entities.SavingAccount;
+import com.deme.ahmadou.ebank.dtos.*;
+import com.deme.ahmadou.ebank.entities.*;
 import com.deme.ahmadou.ebank.enums.AccountStatus;
 import com.deme.ahmadou.ebank.exceptions.BankAccountNotFoundException;
 import com.deme.ahmadou.ebank.exceptions.CustomerNotFoundException;
+import com.deme.ahmadou.ebank.mappers.AccountOperationServiceMapperImpl;
 import com.deme.ahmadou.ebank.mappers.BankAccountServiceMapperImpl;
+import com.deme.ahmadou.ebank.repositories.AccountOperationRepository;
 import com.deme.ahmadou.ebank.repositories.BankAccountRepository;
 import com.deme.ahmadou.ebank.repositories.CustomerRepository;
 import com.deme.ahmadou.ebank.services.BankAccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +33,10 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final CustomerRepository customerRepository;
 
     private final BankAccountServiceMapperImpl bankAccountServiceMapper;
+
+    private final AccountOperationRepository accountOperationRepository;
+
+    private final AccountOperationServiceMapperImpl accountOperationServiceMapper;
 
     @Override
     public CurrentBankAccountDto saveCurrentBankAccount(double initialBalance, double  overDraft, Long customerID) throws CustomerNotFoundException{
@@ -100,5 +103,38 @@ public class BankAccountServiceImpl implements BankAccountService {
                     bankAccountServiceMapper.fromCurrentAccount((CurrentAccount) bankAccount) :
                     bankAccountServiceMapper.fromSavingAccount((SavingAccount) bankAccount);
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AccountOperationDto> accountHistory(String accountId) throws BankAccountNotFoundException {
+        bankAccountRepository.findById(accountId).orElseThrow(() -> new BankAccountNotFoundException("Bank account not found"));
+
+        return accountOperationRepository.findAccountOperationByAccountId(accountId)
+                .stream()
+                .map(accountOperationServiceMapper::fromAccountOperation).collect(Collectors.toList());
+    }
+
+    @Override
+    public AccountHistoryDto pageOperations(String accountId, int page, int size) throws BankAccountNotFoundException {
+
+        BankAccount bankAccount = bankAccountRepository.findById(accountId)
+                .orElseThrow(() -> new BankAccountNotFoundException("Bank account not found"));
+
+        Page<AccountOperation> accountOperationPage = accountOperationRepository.findAccountOperationByAccountId(accountId, PageRequest.of(page,size));
+
+        List<AccountOperationDto> accountOperationDTOS = accountOperationPage.getContent()
+                .stream().map(accountOperationServiceMapper::fromAccountOperation).collect(Collectors.toList());
+
+        AccountHistoryDto accountHistoryDto = new AccountHistoryDto();
+        accountHistoryDto.setAccountId(bankAccount.getId());
+        accountHistoryDto.setBalance(bankAccount.getBalance());
+        accountHistoryDto.setAccountOperationDtoList(accountOperationDTOS);
+
+        accountHistoryDto.setTotalPages(accountOperationPage.getTotalPages());
+        accountHistoryDto.setPageSize(size);
+        accountHistoryDto.setCurrentPage(page);
+        accountHistoryDto.setTotalElements(accountOperationPage.getTotalElements());
+
+        return accountHistoryDto;
     }
 }
