@@ -15,6 +15,7 @@ import com.deme.ahmadou.ebank.repositories.BankAccountRepository;
 import com.deme.ahmadou.ebank.repositories.CustomerRepository;
 import com.deme.ahmadou.ebank.services.BankAccountService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class BankAccountServiceImpl implements BankAccountService {
 
     private final BankAccountRepository bankAccountRepository;
@@ -39,7 +41,6 @@ public class BankAccountServiceImpl implements BankAccountService {
         // find related customer
         Customer customer = customerRepository.findById(customerID).orElseThrow(()-> new CustomerNotFoundException("Customer with id {} not found"));
 
-
         CurrentAccount currentAccount = new CurrentAccount();
 
         currentAccount.setId(UUID.randomUUID().toString());
@@ -48,6 +49,10 @@ public class BankAccountServiceImpl implements BankAccountService {
         currentAccount.setCustomer(customer);
         currentAccount.setStatus(AccountStatus.CREATED);
         currentAccount.setOverDraft(overDraft);
+
+        log.info("Saving new current account {}",currentAccount);
+
+        bankAccountRepository.save(currentAccount);
 
         return bankAccountServiceMapper.fromCurrentAccount(currentAccount);
     }
@@ -65,6 +70,9 @@ public class BankAccountServiceImpl implements BankAccountService {
         savingAccount.setStatus(AccountStatus.CREATED);
         savingAccount.setInterestRate(interestRate);
 
+        log.info("Saving new saving account {}",savingAccount);
+
+        bankAccountRepository.save(savingAccount);
         return bankAccountServiceMapper.fromSavingAccount(savingAccount);
     }
 

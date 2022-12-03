@@ -1,6 +1,8 @@
 package com.deme.ahmadou.ebank;
 
+import com.deme.ahmadou.ebank.dtos.CurrentBankAccountDto;
 import com.deme.ahmadou.ebank.dtos.CustomerDto;
+import com.deme.ahmadou.ebank.dtos.SavingBankAccountDto;
 import com.deme.ahmadou.ebank.entities.*;
 import com.deme.ahmadou.ebank.enums.AccountStatus;
 import com.deme.ahmadou.ebank.enums.OperationType;
@@ -63,12 +65,29 @@ public class EBankBackendApplication {
 			});
 
 			// create 10 operations for every bank account
-			bankAccountRepository.findAll().forEach(account -> {
+			/*bankAccountRepository.findAll().forEach(account -> {
 				for(int i=0; i<10; i++){
 
 					try {
 						accountOperationService.credit(account.getId(),10_000+Math.random()*120_000,"Credit");
 						accountOperationService.debit(account.getId(),1000+Math.random()*9000,"Debit");
+
+					} catch (BankAccountNotFoundException | BalanceNotSufficientException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			});*/
+			bankAccountService.getBankAccountList().forEach(bankAccountDto -> {
+				for (int i=0; i<10; i++){
+					try {
+						if (bankAccountDto instanceof CurrentBankAccountDto){
+							accountOperationService.credit(((CurrentBankAccountDto)bankAccountDto).getId(), 10_000 + Math.random() * 120_000, "Credit");
+							accountOperationService.debit(((CurrentBankAccountDto)bankAccountDto).getId(), 1000 + Math.random() * 9000, "Debit");
+						}
+						else{
+							accountOperationService.credit(((SavingBankAccountDto)bankAccountDto).getId(), 10_000 + Math.random() * 120_000, "Credit");
+							accountOperationService.debit(((SavingBankAccountDto)bankAccountDto).getId(), 1000 + Math.random() * 9000, "Debit");
+						}
 
 					} catch (BankAccountNotFoundException | BalanceNotSufficientException e) {
 						throw new RuntimeException(e);
