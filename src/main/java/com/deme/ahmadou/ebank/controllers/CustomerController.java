@@ -10,14 +10,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+
 @RestController
 @RequestMapping("/api/v1/customers")
 @RequiredArgsConstructor
+@CrossOrigin("*")
 public class CustomerController {
     private final CustomerService customerService;
 
     @GetMapping
-    public List<CustomerDto> getCustomers(){
+    public List<CustomerDto> getCustomers() throws InterruptedException {
+
         return customerService.listCustomers();
     }
 
@@ -36,6 +40,12 @@ public class CustomerController {
 
         customerDto.setId(customerId);
         return customerService.updateCustomer(customerDto);
+    }
+
+    @GetMapping("/search")
+    public List<CustomerDto> searchCustomers(@RequestParam(name = "name", defaultValue = "") String name){
+        //return customerService.searchCustomers("%"+name+"%");
+        return customerService.searchCustomers(name);
     }
 
     @DeleteMapping("/{id}")

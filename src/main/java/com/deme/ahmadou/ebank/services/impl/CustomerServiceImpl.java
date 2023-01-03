@@ -64,4 +64,15 @@ public class CustomerServiceImpl implements CustomerService {
 
         customerRepository.deleteById(customerId);
     }
+
+    @Override
+    public List<CustomerDto> searchCustomers(String name) {
+        return customerRepository.findCustomersByNameContains(name)
+                .stream().map(customerServiceMapperIml::fromCustomer)
+                .collect(Collectors.toList());
+
+        /*return customerRepository.searchCustomer(name)
+                .stream().map(customerServiceMapperIml::fromCustomer)
+                .collect(Collectors.toList());*/
+    }
 }
